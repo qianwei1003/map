@@ -1,5 +1,5 @@
 import L from 'leaflet'
-import { MapOptions, TileLayerOptions } from './common/types'
+import type { MapOptions, TileLayerOptions } from './common/types'
 import { MapType, MapStyle, ZoomLevel } from './common/constants'
 import { MapConfig } from './config/map'
 

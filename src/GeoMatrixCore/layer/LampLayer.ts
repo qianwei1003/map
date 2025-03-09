@@ -1,6 +1,6 @@
-import { LayerCore, IconOptions } from './LayerCore'
+import { LayerCore, type IconOptions }  from './LayerCore'
 import { DEVICE_MODEL,DEVICE_VALUE  } from '../common/constants'
-import { MapItem } from '../data/types'
+import type { MapItem } from '../data/types'
 export class LampLayer extends LayerCore {
   constructor() {
     const imgArr = [

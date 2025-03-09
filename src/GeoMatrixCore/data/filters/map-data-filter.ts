@@ -1,4 +1,4 @@
-import { MapItem, MapData, DataChangeEvent } from '../types'
+import type { MapItem, MapData, DataChangeEvent } from '../types'
 import { DEVICE_VALUE, DATA_CHANGE_TYPE } from '../../common/constants'
 import EventEmitter from 'eventemitter3'
 export abstract class MapDataFilter extends EventEmitter{

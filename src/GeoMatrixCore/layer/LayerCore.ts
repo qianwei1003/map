@@ -2,7 +2,7 @@ import L from 'leaflet'
 import 'leaflet-canvas-marker'
 import { IconUtil } from '../utils/icon'
 import { getImageUrl } from '@/utils'
-import { MapItem } from '../data/types'
+import type { MapItem } from '../data/types'
 export abstract class LayerCore {
   public canvasLayer: any = null
   private map: L.Map | null = null
@@ -80,16 +80,15 @@ export abstract class LayerCore {
       this.canvasLayer.removeMarker(marker)
     }
   }
-
   public removeMarkers(): void {
     if (this.canvasLayer) {
       this.markers.forEach(marker => {
-        this.canvasLayer.removeMarker(marker, false)
+        this.canvasLayer.removeMarker(marker, true)
       })
       this.markers.clear()
+      this.canvasLayer.redraw()
     }
   }
-
   public updateMarker(id: string, position: [number, number]): void {
     const marker = this.markers.get(id)
     if (marker) {
@@ -155,7 +154,8 @@ public async preloadImages(imageUrls: string[]): Promise<void> {
   const loadPromises = imageUrls.map(url => IconUtil.preloadIcon(url));
   await Promise.all(loadPromises);
 }
-  abstract onDraw(data: any): void;
+abstract onDraw(data: any): void;
+
 }
 
 export interface IconOptions {

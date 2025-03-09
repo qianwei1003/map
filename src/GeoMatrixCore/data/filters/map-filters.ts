@@ -1,6 +1,6 @@
 import { MapDataFilter } from './map-data-filter'
 import { DEVICE_MODEL, DEVICE_VALUE, getDeviceModelByValue } from '../../common/constants'
-import { MapItem,MapData,MapDataDevice,MapPole,  } from '../types'
+import type { MapItem,MapData,MapDataDevice,MapPole,  } from '../types'
 
 /**
  * 灯具数据过滤器

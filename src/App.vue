@@ -1,30 +1,42 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { Tabbar, TabbarItem } from 'vant'
+
+const router = useRouter()
+const active = ref(0)
+
+const routes = [
+  { name: 'home', icon: 'home-o', title: '首页' },
+  { name: 'map', icon: 'location-o', title: '地图' },
+  { name: 'settings', icon: 'setting-o', title: '设置' }
+]
+
+const onChange = (index: number) => {
+  active.value = index
+  router.push({ name: routes[index].name })
+}
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+  <router-view />
+  <van-tabbar v-model="active" @change="onChange">
+    <van-tabbar-item v-for="(route, index) in routes" :key="index" :icon="route.icon">
+      {{ route.title }}
+    </van-tabbar-item>
+  </van-tabbar>
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+<style>
+#app {
+  height: 100vh;
+  display: flex;  
+  width: 100%;
+  flex-direction: column;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.van-tabbar {
+  background-color: #ffffff;
+  border-top: 1px solid #f5f5f5;
 }
 </style>

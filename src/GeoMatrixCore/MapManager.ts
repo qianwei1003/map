@@ -1,15 +1,15 @@
 import { MapCore } from './MapCore'
 import { DataManager } from './data/map-data-manager'
-import { MapOptions } from './common/types'
+import type { MapOptions } from './common/types'
 import EventEmitter from 'eventemitter3'
 import { LayerManager } from './layer/LayerManager'
 import { LampLayer} from './layer/LampLayer'
 import { MAP_MAKER_LEVEL, FILTER_EVENTS, DEVICE_MODEL } from './common/constants'
-import { countDeviceTotal, getDeviceByLatLng, getLampModelByLatLng, queryLcusOfPoleByLcuId } from '@/api/map'
+import { getDeviceByLatLng } from '@/api/map'
 import { storage } from '@/utils/store'
 import { getProjectName, getImageUrl, timestampGlobal } from '@/utils'
 import { MapFilters } from "./data/filters/map-filters";
-import { DataChangeEvent } from './data/types'
+import type { DataChangeEvent } from './data/types'
 import { debounce } from 'lodash'  // 添加 lodash 的 debounce
 
 export class MapManager extends EventEmitter {
@@ -34,12 +34,9 @@ export class MapManager extends EventEmitter {
   public init() {
     const map = this.mapCore.getMap();
     if (map) {
-      // 先设置地图中心
-      const projectTree = storage.get('projectTree') || []
-      const currentProject = projectTree.find((item: any) => item.projectId === storage.get('pid'))
-      if (currentProject) {
-        this.mapCore.setCenter([Number(currentProject.lat), Number(currentProject.lng)])
-      }
+      // 设置地图中心为北京市中心
+      this.mapCore.setCenter([39.9, 116.4], 12);
+
       this.dataManager.clear();
       this.dataManager.addFilter(MapFilters.FILTER_LAMP);
       this.layerManager.setMap(map);
@@ -68,7 +65,7 @@ export class MapManager extends EventEmitter {
         deviceType: this.deviceTypeValue === -1 ? '' : this.deviceTypeValue,
         projectId: storage.get('pid'),
         level: this.level,
-        repeatTime: timestampGlobal(new Date().getTime(), false),
+        repeatTime:new Date().getTime(),
         poleView: this.showLampOrPole
     }
     getDeviceByLatLng(params).then((res: any) => {

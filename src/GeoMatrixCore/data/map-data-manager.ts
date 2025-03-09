@@ -1,7 +1,7 @@
-import { Device, Project, DeviceType } from './types'
+import type { Device, Project, DeviceType } from './types'
 import { DataEventType, DEVICE_MODEL, DEVICE_VALUE } from '../common/constants'
 import EventEmitter from 'eventemitter3'
-import { MapData, MapDataDevice, MapItem } from './types'
+import type { MapData, MapDataDevice, MapItem } from './types'
 import { MapDataFilter } from './filters/map-data-filter'
 export class DataManager extends EventEmitter {
   private filters: Map<string, MapDataFilter> = new Map()
