@@ -1,6 +1,9 @@
 import { LayerCore, type IconOptions }  from './LayerCore'
 import { DEVICE_MODEL,DEVICE_VALUE  } from '../common/constants'
 import type { MapItem } from '../data/types'
+import { getImageUrl } from '@/utils'
+import L from 'leaflet'
+
 export class LampLayer extends LayerCore {
   constructor() {
     const imgArr = [
@@ -29,21 +32,37 @@ export class LampLayer extends LayerCore {
   }
 
   public async onDraw(items: MapItem[]): Promise<void> {
-    const markers = await Promise.all(
-      items.map(async item => {
+    // const markers = await Promise.all(
+    //   items.map(async item => {
+    //     const iconOptions = this.getIconOptions(item)
+    //     const icon = await this.createIcon(iconOptions)
+    //     return {
+    //       id: item.id,
+    //       position: [item.lat, item.lng] as [number, number],
+    //       icon
+    //     }
+    //   })
+      
+    // )
+    const markers = items.map(item => {
         const iconOptions = this.getIconOptions(item)
-        const icon = await this.createIcon(iconOptions)
-        return {
+        const icon = this.createIcon1(iconOptions)
+    return {
           id: item.id,
           position: [item.lat, item.lng] as [number, number],
           icon
         }
       })
-      
-    )
-    await this.initMarkers(markers)
+     this.initMarkers(markers)
   }
-
+  public createIcon1(iconOptions: IconOptions): L.Icon {
+    const icon = L.icon({
+      iconUrl: getImageUrl(`map_images/${iconOptions.normal.url}.png`),
+      iconSize: [iconOptions.normal.width, iconOptions.normal.height],
+      iconAnchor: [iconOptions.normal.width / 2, iconOptions.normal.height / 2],
+    });
+    return icon
+  }
   private getIconOptions(item: MapItem): IconOptions {
     const { ls, aStatus, aValues = [] } = item.data
     const hasAlarm = aStatus === 1 || aValues.length > 0

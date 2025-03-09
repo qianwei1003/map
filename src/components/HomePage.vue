@@ -12,27 +12,35 @@ import 'leaflet-canvas-marker'
 import { MapCore } from '@/GeoMatrixCore/MapCore'
 import { MapType, MapStyle } from '@/GeoMatrixCore/common/constants'
 import { getDeviceByLatLng } from '@/api/map'
+import { getImageUrl } from '@/utils'
 
 let mapInstance: MapCore | null = null
-let markerLayer: any = null
+let activeMarkerLayer: any = null
 
 // 创建设备图标
 const createDeviceIcon = (status: number) => {
-  const iconUrl = `/map_images/lamp_${status === 1 ? 'on' : status === 0 ? 'off' : 'unknown'}@2x.png`
+  const getIconUrl = () => {
+    switch (status) {
+      case 1: return 'map_images/lamp_on'
+      case 2: return 'map_images/lamp_off'
+      case 3: return 'map_images/lamp_error'
+      default: return 'map_images/lamp_unknown'
+    }
+  }
+
   return L.icon({
-    iconUrl,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
+    iconUrl: getImageUrl(`${getIconUrl()}.png`),
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
   })
 }
-
+let markersCopy: any[] = []
 // 更新设备数据
 const updateDevices = async () => {
   if (!mapInstance) return
 
   const bounds = mapInstance.getBounds()
   if (!bounds) return
-
   try {
     const response = await getDeviceByLatLng({
       ...bounds,
@@ -43,22 +51,24 @@ const updateDevices = async () => {
     })
 
     if (response.code === 200) {
-      // 初始化 canvas 图层
-      if (!markerLayer) {
-        markerLayer = L.canvasIconLayer({}).addTo(mapInstance.getMap()!)
-      }
-
-      // 准备批量添加的标记
+      // 初始化双缓冲图层
+        activeMarkerLayer = L.canvasIconLayer({}).addTo(mapInstance.getMap()!)
+      // 在缓冲图层上准备新的标记
       const markers = response.data.lamp.map(device => {
         return L.marker(
           [parseFloat(device.lat), parseFloat(device.lng)],
           { icon: createDeviceIcon(device.ls) }
         )
       })
-
-      // 清除现有标记并批量添加新标记
-      markerLayer.removeMarkers()
-      markerLayer.addMarkers(markers)
+      if (markersCopy.length > 0) {
+        // 移除旧的标记
+        console.log(markersCopy)
+        markersCopy.forEach(marker => {
+          activeMarkerLayer.removeMarker(marker)
+        })
+      }
+      markersCopy = markers
+      activeMarkerLayer.addMarkers(markers)
     }
   } catch (error) {
     console.error('获取设备数据失败:', error)
@@ -83,23 +93,11 @@ onMounted(() => {
   updateDevices()
 })
 
-onUnmounted(() => {
-  // 销毁地图实例和图层
-  if (markerLayer) {
-    markerLayer.clearLayers()
-    markerLayer = null
-  }
-  if (mapInstance) {
-    mapInstance.destroy()
-    mapInstance = null
-  }
-})
 </script>
 
 <style scoped>
 .map-container {
   width: 100%;
-  height: 100vh;
   position: relative;
 }
 

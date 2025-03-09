@@ -48,6 +48,7 @@ export abstract class LayerCore {
   public async initMarkers(data: Array<{ id: string; position: [number, number]; icon: L.Icon }>): Promise<void> {
     if (!this.canvasLayer) return
     this.removeMarkers()
+    // this.canvasLayer.redraw()
     this.addMarkers(data)
   }
 
@@ -80,13 +81,13 @@ export abstract class LayerCore {
       this.canvasLayer.removeMarker(marker)
     }
   }
-  public removeMarkers(): void {
+   public async removeMarkers(): void {
     if (this.canvasLayer) {
+      console.log('removeMarkers', this.markers)
       this.markers.forEach(marker => {
-        this.canvasLayer.removeMarker(marker, true)
+        this.canvasLayer.removeMarker(marker, false)
       })
       this.markers.clear()
-      this.canvasLayer.redraw()
     }
   }
   public updateMarker(id: string, position: [number, number]): void {
@@ -98,6 +99,14 @@ export abstract class LayerCore {
   }
 
   protected async createIcon(iconOptions: IconOptions): Promise<L.Icon> {
+    const icon = L.icon({
+      iconUrl: getImageUrl(`map_images/${iconOptions.normal.url}.png`),
+      iconSize: [iconOptions.normal.width, iconOptions.normal.height],
+      iconAnchor: [iconOptions.normal.width / 2, iconOptions.normal.height / 2],
+      // iconActiveUrl: iconOptions.active ? getImageUrl(`map_images/${iconOptions.active.url}.png`) : undefined,
+      // iconActiveSize: iconOptions.active ? [iconOptions.active.width, iconOptions.active.height] : undefined
+    });
+    return icon
     const cacheKey = `${iconOptions.normal.url}_${iconOptions.normal.width}_${iconOptions.normal.height}`;
     if (!this.iconCache.has(cacheKey)) {
       const icon = L.icon({
@@ -107,7 +116,6 @@ export abstract class LayerCore {
         // iconActiveUrl: iconOptions.active ? getImageUrl(`map_images/${iconOptions.active.url}.png`) : undefined,
         // iconActiveSize: iconOptions.active ? [iconOptions.active.width, iconOptions.active.height] : undefined
       });
-      console.log(cacheKey, 'cacheKey')
       this.iconCache.set(cacheKey, icon);
     }
     return this.iconCache.get(cacheKey)!;
@@ -128,21 +136,20 @@ export abstract class LayerCore {
    * @returns Promise<void>
    */
   public async preloadIcons(iconOptionsList: IconOptions[]): Promise<void> {
-    if (!iconOptionsList?.length) return;
-    const loadPromises = iconOptionsList.map(async (options) => {
-      const cacheKey = `${options.normal.url}_${options.normal.width}_${options.normal.height}`;
-      if (!this.iconCache.has(cacheKey)) {
-        await IconUtil.preloadIcon(options.normal.url);
-        const icon = L.icon({
-          iconUrl: getImageUrl(`${options.normal.url}.png`),
-          iconSize: [options.normal.width, options.normal.height],
-          iconAnchor: [options.normal.width / 2, options.normal.height / 2]
-        });
-        this.iconCache.set(cacheKey, icon);
-      }
-    });
-
-    await Promise.all(loadPromises);
+    // if (!iconOptionsList?.length) return;
+    // const loadPromises = iconOptionsList.map(async (options) => {
+    //   const cacheKey = `${options.normal.url}_${options.normal.width}_${options.normal.height}`;
+    //   if (!this.iconCache.has(cacheKey)) {
+    //     await IconUtil.preloadIcon(options.normal.url);
+    //     const icon = L.icon({
+    //       iconUrl: getImageUrl(`${options.normal.url}.png`),
+    //       iconSize: [options.normal.width, options.normal.height],
+    //       iconAnchor: [options.normal.width / 2, options.normal.height / 2]
+    //     });
+    //     this.iconCache.set(cacheKey, icon);
+    //   }
+    // });
+    // await Promise.all(loadPromises);
   }
   /**
  * 预加载图片资源
@@ -150,9 +157,9 @@ export abstract class LayerCore {
  * @returns Promise<void>
  */
 public async preloadImages(imageUrls: string[]): Promise<void> {
-  if (!imageUrls?.length) return;
-  const loadPromises = imageUrls.map(url => IconUtil.preloadIcon(url));
-  await Promise.all(loadPromises);
+  // if (!imageUrls?.length) return;
+  // const loadPromises = imageUrls.map(url => IconUtil.preloadIcon(url));
+  // await Promise.all(loadPromises);
 }
 abstract onDraw(data: any): void;
 

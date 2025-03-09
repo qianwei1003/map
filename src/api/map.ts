@@ -15,25 +15,55 @@ interface GetDeviceByLatLngParams {
 
 // 模拟道路路径点
 const roadPaths = [
-  // 主干道1（东西向）
-  [
-    { lat: 39.9000, lng: 116.3800 },
-    { lat: 39.9000, lng: 116.4000 },
-    { lat: 39.9000, lng: 116.4200 }
-  ],
-  // 主干道2（南北向）
-  [
-    { lat: 39.8900, lng: 116.4000 },
-    { lat: 39.9000, lng: 116.4000 },
-    { lat: 39.9100, lng: 116.4000 }
-  ],
-  // 支路1（对角线）
-  [
-    { lat: 39.8950, lng: 116.3850 },
-    { lat: 39.9000, lng: 116.4000 },
-    { lat: 39.9050, lng: 116.4150 }
-  ]
-]
+  // 主干道（东西向）- 增加密度
+  ...Array(40).fill(0).map((_, i) => [
+    { lat: 39.8800 + (i * 0.0025), lng: 116.3800 },
+    { lat: 39.8800 + (i * 0.0025), lng: 116.3850 },
+    { lat: 39.8800 + (i * 0.0025), lng: 116.3900 },
+    { lat: 39.8800 + (i * 0.0025), lng: 116.3950 },
+    { lat: 39.8800 + (i * 0.0025), lng: 116.4000 },
+    { lat: 39.8800 + (i * 0.0025), lng: 116.4050 },
+    { lat: 39.8800 + (i * 0.0025), lng: 116.4100 },
+    { lat: 39.8800 + (i * 0.0025), lng: 116.4150 },
+    { lat: 39.8800 + (i * 0.0025), lng: 116.4200 }
+  ]),
+  // 主干道（南北向）- 增加密度
+  ...Array(40).fill(0).map((_, i) => [
+    { lat: 39.8800, lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.8850, lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.8900, lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.8950, lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.9000, lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.9050, lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.9100, lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.9150, lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.9200, lng: 116.3800 + (i * 0.0025) }
+  ]),
+  // 对角线道路 - 增加密度
+  ...Array(30).fill(0).map((_, i) => [
+    { lat: 39.8800 + (i * 0.0025), lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.8825 + (i * 0.0025), lng: 116.3850 + (i * 0.0025) },
+    { lat: 39.8850 + (i * 0.0025), lng: 116.3900 + (i * 0.0025) },
+    { lat: 39.8875 + (i * 0.0025), lng: 116.3950 + (i * 0.0025) },
+    { lat: 39.8900 + (i * 0.0025), lng: 116.4000 + (i * 0.0025) },
+    { lat: 39.8925 + (i * 0.0025), lng: 116.4050 + (i * 0.0025) },
+    { lat: 39.8950 + (i * 0.0025), lng: 116.4100 + (i * 0.0025) },
+    { lat: 39.8975 + (i * 0.0025), lng: 116.4150 + (i * 0.0025) },
+    { lat: 39.9000 + (i * 0.0025), lng: 116.4200 + (i * 0.0025) }
+  ]),
+  // 反向对角线道路
+  ...Array(30).fill(0).map((_, i) => [
+    { lat: 39.9200 - (i * 0.0025), lng: 116.3800 + (i * 0.0025) },
+    { lat: 39.9175 - (i * 0.0025), lng: 116.3850 + (i * 0.0025) },
+    { lat: 39.9150 - (i * 0.0025), lng: 116.3900 + (i * 0.0025) },
+    { lat: 39.9125 - (i * 0.0025), lng: 116.3950 + (i * 0.0025) },
+    { lat: 39.9100 - (i * 0.0025), lng: 116.4000 + (i * 0.0025) },
+    { lat: 39.9075 - (i * 0.0025), lng: 116.4050 + (i * 0.0025) },
+    { lat: 39.9050 - (i * 0.0025), lng: 116.4100 + (i * 0.0025) },
+    { lat: 39.9025 - (i * 0.0025), lng: 116.4150 + (i * 0.0025) },
+    { lat: 39.9000 - (i * 0.0025), lng: 116.4200 + (i * 0.0025) }
+  ])
+].flat()
 
 // 在路径点之间插值生成更多点
 function interpolatePoints(start: { lat: number; lng: number }, end: { lat: number; lng: number }, count: number) {
@@ -51,63 +81,82 @@ function interpolatePoints(start: { lat: number; lng: number }, end: { lat: numb
 // 生成路边的灯具位置
 function generateRoadLights(path: { lat: number; lng: number }[], spacing: number) {
   const lights = []
+  const R = 6371000 // 地球半径（米）
+
+  // Haversine公式计算两点间距离
+  function haversineDistance(p1: { lat: number; lng: number }, p2: { lat: number; lng: number }) {
+    const dLat = (p2.lat - p1.lat) * Math.PI / 180
+    const dLon = (p2.lng - p1.lng) * Math.PI / 180
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    return R * c
+  }
+console.log(path.length - 1,'path.length - 1');
+
   for (let i = 0; i < path.length - 1; i++) {
     const start = path[i]
     const end = path[i + 1]
+    console.log(start, end,'start, end');
     
-    // 计算两点之间的距离（简化计算，实际应该使用球面距离）
-    const distance = Math.sqrt(
-      Math.pow(end.lat - start.lat, 2) + Math.pow(end.lng - start.lng, 2)
-    )
+    // 使用haversine公式计算实际距离（米）
+    const distance = haversineDistance(start, end)
     
-    // 计算需要插入的灯具数量
-    const count = Math.floor(distance / spacing)
+    // 将spacing从经纬度单位转换为米
+    const spacingInMeters = spacing * 111000 // 粗略转换：1度≈111km
+    
+    // 计算需要插入的灯具数量，确保至少有1个
+    const count = Math.max(1, Math.floor(distance / spacingInMeters))
     
     // 在路段上均匀分布灯具
     const interpolated = interpolatePoints(start, end, count)
     lights.push(...interpolated)
   }
+  
   return lights
 }
 
 // 模拟设备数据生成函数
 function generateMockDevices(params: GetDeviceByLatLngParams): MapDataDevice[] {
   const devices: MapDataDevice[] = []
-  const lightSpacing = 0.0002 // 灯具间距（经纬度单位）
+  const lightSpacing = 0.0001 // 减小灯具间距，确保生成更多灯具
   
   // 为每条道路生成灯具
-  roadPaths.forEach(path => {
+  const paths = roadPaths.reduce((acc, point, i, arr) => {
+    if (i % 9 === 0) {
+      acc.push(arr.slice(i, i + 9))
+    }
+    return acc
+  }, [])
+  
+  paths.forEach(path => {
     const lights = generateRoadLights(path, lightSpacing)
     
     lights.forEach((pos, index) => {
-      // 添加随机偏移，模拟真实场景
-      const offsetLat = (Math.random() - 0.5) * 0.0001
-      const offsetLng = (Math.random() - 0.5) * 0.0001
+      // 添加更小的随机偏移
+      const offsetLat = (Math.random() - 0.5) * 0.00005
+      const offsetLng = (Math.random() - 0.5) * 0.00005
       
       const device: MapDataDevice = {
         dId: `device_${devices.length}`,
         pid: params.projectId,
         deviceTypeValue: DEVICE_VALUE.LAMP,
-        type: 2, // 灯具
-        ctype: 1, // 非直连
+        type: 2,
+        ctype: 1,
         uid: `uid_${devices.length}`,
         dName: `灯具${devices.length + 1}`,
         lat: (pos.lat + offsetLat).toString(),
         lng: (pos.lng + offsetLng).toString(),
-        ls: Math.floor(Math.random() * 4) + 1, // 1-4随机状态
-        aStatus: Math.random() > 0.8 ? 1 : 0, // 20%概率有告警
-        aValue: Math.random() > 0.8 ? 1 : 0, // 20%概率有告警
-        networkStatus: Math.random() > 0.2 ? 1 : 0, // 80%概率在线
-        signals: Math.floor(Math.random() * 100), // 0-100信号强度
-        dStatus: 1, // 启用状态
-        dim: Math.floor(Math.random() * 100) // 0-100调光值
+        ls: Math.floor(Math.random() * 4) + 1,
+        aStatus: Math.random() > 0.8 ? 1 : 0,
+        aValue: Math.random() > 0.8 ? 1 : 0,
+        networkStatus: Math.random() > 0.2 ? 1 : 0,
+        signals: Math.floor(Math.random() * 100),
+        dStatus: 1,
+        dim: Math.floor(Math.random() * 100)
       }
-      
-      // 只添加在可视范围内的设备
-      if (pos.lat >= params.latMin && pos.lat <= params.latMax &&
-          pos.lng >= params.lngMin && pos.lng <= params.lngMax) {
-        devices.push(device)
-      }
+      devices.push(device)
     })
   })
 
@@ -117,7 +166,7 @@ function generateMockDevices(params: GetDeviceByLatLngParams): MapDataDevice[] {
 // 获取设备接口
 export async function getDeviceByLatLng(params: GetDeviceByLatLngParams) {
   // 模拟接口延迟
-  await new Promise(resolve => setTimeout(resolve, 200))
+  // await new Promise(resolve => setTimeout(resolve, 200))
 
   const mockDevices = generateMockDevices(params)
 

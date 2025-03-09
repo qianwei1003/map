@@ -41,10 +41,10 @@ export class MapLampFilter extends MapDataFilter {
     public filter(data: MapData, type: DEVICE_VALUE): MapItem | null | undefined {
         // if (this.layerSetting && !this.manager.hasServerLayerConfig("10")) return
         const lamp = data as MapDataDevice
-        const id = lamp.uid && lamp.uid.length > 0 
-            ? `${lamp.pid}_${lamp.uid}_${lamp.num || 1}` 
-            : lamp.dId
-
+        // const id = lamp.uid && lamp.uid.length > 0 
+        //     ? `${lamp.pid}_${lamp.uid}_${lamp.num || 1}` 
+        //     : lamp.dId
+        const id = lamp.dId
         return {
             id: id,
             model: getDeviceModelByValue(type),
